@@ -1,0 +1,2 @@
+# QFNUElectricityQuery
+曲阜师范大学新校区电费查询脚本
