@@ -63,5 +63,13 @@ class ElectricityQuery:
 
 
 if __name__ == "__main__":
+
+    if not os.getenv("OPEN_ID"):
+        # 创建.env文件
+        with open(".env", "w") as f:
+            f.write("OPEN_ID=")
+        print("已创建.env文件，请在文件中填写openID")
+        raise ValueError("没有获取到openID，请确保环境变量中存在OPEN_ID")
+
     query = ElectricityQuery(os.getenv("OPEN_ID"))
     query.print_result()
