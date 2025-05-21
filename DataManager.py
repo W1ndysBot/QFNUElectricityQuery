@@ -5,6 +5,7 @@
 import os
 import json
 import logging
+from datetime import datetime
 
 
 class DataManager:
@@ -84,3 +85,45 @@ class DataManager:
         except Exception as e:
             logging.error(f"获取绑定关系时出错: {e}")
             return {}
+
+    def save_last_alert_time(self, last_alert_time_dict):
+        """保存上次提醒时间到本地文件
+
+        Args:
+            last_alert_time_dict: {user_id: datetime}
+        """
+        data = self._load_group_data()
+        if "last_alert_time" not in data:
+            data["last_alert_time"] = {}
+
+        # 将datetime对象转为ISO格式字符串后保存
+        serialized_dict = {}
+        for user_id, timestamp in last_alert_time_dict.items():
+            if isinstance(timestamp, datetime):
+                serialized_dict[user_id] = timestamp.isoformat()
+            else:
+                serialized_dict[user_id] = timestamp
+
+        data["last_alert_time"] = serialized_dict
+        self._save_group_data(data)
+        return True
+
+    def load_last_alert_time(self):
+        """从本地文件加载上次提醒时间
+
+        Returns:
+            dict: {user_id: datetime}
+        """
+        data = self._load_group_data()
+        last_alert_time_dict = data.get("last_alert_time", {})
+
+        # 将字符串转回datetime对象
+        result = {}
+        for user_id, timestamp_str in last_alert_time_dict.items():
+            try:
+                result[user_id] = datetime.fromisoformat(timestamp_str)
+            except (TypeError, ValueError):
+                # 如果转换失败，则跳过该记录
+                logging.warning(f"无法解析时间戳: {timestamp_str}")
+
+        return result

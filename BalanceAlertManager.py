@@ -29,6 +29,44 @@ class BalanceAlertManager:
         self.last_alert_time = {}
         self.electricity_query = ElectricityQuery()
 
+        # 定义数据目录，与DataManager保持一致
+        base_dir = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        )
+        self.DATA_DIR = os.path.join(base_dir, "data", "QFNUElectricityQuery")
+        os.makedirs(self.DATA_DIR, exist_ok=True)
+
+        # 从本地文件恢复各群组的提醒时间记录
+        self._load_alert_times_from_disk()
+
+    def _load_alert_times_from_disk(self):
+        """从磁盘加载所有群组的提醒时间记录"""
+        try:
+            if not os.path.exists(self.DATA_DIR):
+                return
+
+            # 遍历数据目录下的所有群组数据文件
+            for filename in os.listdir(self.DATA_DIR):
+                if filename.endswith(".json"):
+                    group_id = filename.split(".")[0]
+
+                    # 加载该群组的提醒时间记录
+                    data_manager = DataManager(group_id)
+                    last_alert_times = data_manager.load_last_alert_time()
+                    if last_alert_times:
+                        self.last_alert_time[group_id] = last_alert_times
+        except Exception as e:
+            logging.error(f"加载提醒时间记录时出错: {e}")
+
+    def _save_alert_time(self, group_id):
+        """保存指定群组的提醒时间记录到磁盘"""
+        try:
+            if group_id in self.last_alert_time:
+                data_manager = DataManager(group_id)
+                data_manager.save_last_alert_time(self.last_alert_time[group_id])
+        except Exception as e:
+            logging.error(f"保存群组 {group_id} 的提醒时间记录时出错: {e}")
+
     def should_alert(self, group_id, user_id):
         """检查是否应该发送提醒（避免频繁提醒）"""
         now = datetime.now()
@@ -38,6 +76,8 @@ class BalanceAlertManager:
         last_time = self.last_alert_time[group_id].get(user_id)
         if not last_time or now - last_time > timedelta(hours=self.alert_interval):
             self.last_alert_time[group_id][user_id] = now
+            # 保存提醒时间到本地
+            self._save_alert_time(group_id)
             return True
         return False
 
@@ -57,14 +97,12 @@ class BalanceAlertManager:
     async def check_and_alert(self, websocket):
         """检查所有用户余额并发送提醒"""
         try:
-            # 获取所有已保存的群组数据文件
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            data_dir = os.path.join(base_dir, "data")
-            if not os.path.exists(data_dir):
+            # 确保数据目录存在
+            if not os.path.exists(self.DATA_DIR):
                 return
 
-            # 遍历data目录下的所有群组数据文件
-            for filename in os.listdir(data_dir):
+            # 遍历数据目录下的所有群组数据文件
+            for filename in os.listdir(self.DATA_DIR):
                 if filename.endswith(".json"):
                     group_id = filename.split(".")[0]
 
