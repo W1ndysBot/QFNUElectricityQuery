@@ -17,6 +17,7 @@ from app.api import send_group_msg, send_private_msg, delete_msg
 from app.switch import load_switch, save_switch
 from app.scripts.QFNUElectricityQuery.DataManager import DataManager
 from app.scripts.QFNUElectricityQuery.ElectricityQuery import ElectricityQuery
+from app.scripts.QFNUElectricityQuery.BalanceAlertManager import BalanceAlertManager
 
 query_message_id = []
 
@@ -67,7 +68,7 @@ async def send_help_menu(websocket, group_id, message_id):
         "电费绑定 链接 - 绑定你的微信openID链接\n"
         "查询 / 查电费 - 查询已绑定账号的电费余额\n"
         "电费解绑 - 解除当前账号的绑定\n"
-        "微信openID链接获取方法：1.搜索微信公众号“Qsd学生公寓” 2.点击下方菜单栏 3.进入页面之后 4.点击右上角，点击复制链接\n"
+        "微信openID链接获取方法：1.搜索微信公众号【Qsd学生公寓】 2.点击下方菜单栏 3.进入页面之后 4.点击右上角，点击复制链接\n"
         "--------------------------"
     )
     await send_group_msg(websocket, group_id, f"[CQ:reply,id={message_id}]{menu_text}")
@@ -161,7 +162,7 @@ async def handle_group_message(websocket, msg):
                 await send_group_msg(
                     websocket,
                     group_id,
-                    f"[CQ:reply,id={message_id}]🤔 你还没有绑定openID，请使用【电费绑定 链接】命令进行绑定。链接获取方法：1.搜索微信公众号“Qsd学生公寓” 2.点击下方菜单栏 3.进入页面之后 4.点击右上角，点击复制链接",
+                    f"[CQ:reply,id={message_id}]🤔 你还没有绑定openID，请使用【电费绑定 链接】命令进行绑定。链接获取方法：1.搜索微信公众号【Qsd学生公寓】 2.点击下方菜单栏 3.进入页面之后 4.点击右上角，点击复制链接",
                 )
                 return
 
@@ -240,6 +241,16 @@ async def handle_request_event(websocket, msg):
         return
 
 
+# 检查余额函数
+async def check_and_send_balance_alert(websocket):
+    """检查余额并发送提醒"""
+    try:
+        balance_manager = BalanceAlertManager()
+        await balance_manager.check_and_alert(websocket)
+    except Exception as e:
+        logging.error(f"检查余额并发送提醒失败: {e}")
+
+
 # 统一事件处理入口
 async def handle_events(websocket, msg):
     """统一事件处理入口"""
@@ -254,7 +265,8 @@ async def handle_events(websocket, msg):
 
         # 处理元事件，每次心跳时触发，用于一些定时任务
         if post_type == "meta_event":
-            pass
+            # 检查余额函数
+            await check_and_send_balance_alert(websocket)
 
         # 处理消息事件，用于处理群消息和私聊消息
         elif post_type == "message":

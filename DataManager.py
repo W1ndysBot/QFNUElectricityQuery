@@ -72,3 +72,15 @@ class DataManager:
             self._save_group_data(data)
             return True
         return False
+
+    def get_all_bindings(self):
+        """获取所有用户的绑定关系"""
+        try:
+            if os.path.exists(self.GROUP_DATA_PATH):
+                with open(self.GROUP_DATA_PATH, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    return data.get("bindings", {})
+            return {}
+        except Exception as e:
+            logging.error(f"获取绑定关系时出错: {e}")
+            return {}
