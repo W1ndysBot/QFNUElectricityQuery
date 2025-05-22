@@ -67,11 +67,11 @@ class ElectricityQuery:
 
         message = (
             f"查询成功！\n"
-            f"用户编号: {user_info.get('userNumber', '无')}\n"
-            f"用户名: {user_info.get('userName', '无')}\n"
+            # f"用户编号: {user_info.get('userNumber', '无')}\n"
+            # f"用户名: {user_info.get('userName', '无')}\n"
             f"余额: {formatted_balance}\n"
-            f"地址: {user_info.get('address', '无')}\n"
-            f"客户名称: {user_info.get('customerName', '无')}"
+            # f"地址: {user_info.get('address', '无')}\n"
+            # f"客户名称: {user_info.get('customerName', '无')}"
         )
 
         return {"code": 200, "message": message}

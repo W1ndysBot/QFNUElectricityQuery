@@ -139,7 +139,7 @@ async def handle_group_message(websocket, msg):
                     await send_group_msg(
                         websocket,
                         group_id,
-                        f"[CQ:reply,id={message_id}]✅ 绑定成功！",
+                        f"[CQ:reply,id={message_id}]✅ 绑定成功！，你现在可以撤回这条链接",
                     )
                 else:
                     await send_group_msg(
