@@ -119,7 +119,7 @@ class BalanceAlertManager:
                         # 如果需要提醒，发送消息
                         if alert_user_id:
                             alert_msg = (
-                                f"[CQ:at,qq={user_id}] 电费余额提醒！\n"
+                                f"[CQ:at,qq={user_id}]({user_id}) 电费余额提醒！\n"
                                 f"您的电费余额仅剩 {balance:.2f} 元，已低于 {self.threshold} 元，"
                                 f"请及时充值以避免断电！"
                             )
