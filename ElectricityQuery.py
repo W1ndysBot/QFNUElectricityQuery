@@ -54,7 +54,7 @@ class ElectricityQuery:
         if result.get("total", 0) == 0 or not result.get("rows"):
             return {
                 "code": 404,
-                "message": "未找到电费信息",
+                "message": "未找到电费信息，可能是你未绑定新校区宿舍户号信息，相关信息在物业提供的表格里",
             }  # 使用不同的code表示未找到
 
         user_info = result["rows"][0]
